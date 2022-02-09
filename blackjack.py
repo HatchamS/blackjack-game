@@ -1,8 +1,9 @@
-import random, sys
+import random
+import sys
 
 
-class Game():
-    def __init__(self):
+class Game:
+    def __init__(self, money):
         # Set up the constants:
         self.HEARTS = chr(9829)  # Character 9829 is '♥'.
         self.DIAMONDS = chr(9830)  # Character 9830 is '♦'.
@@ -10,22 +11,22 @@ class Game():
         self.CLUBS = chr(9827)  # Character 9827 is '♣'.
         # (A list of chr codes is at https://inventwithpython.com/charactermap)
         self.BACKSIDE = 'backside'
-        self.money = 100
+        self.money = money
 
     def main(self):
         print('''Blackjack,
-     21.
-     22.     Rules:
-     23.       Try to get as close to 21 without going over.
-     24.       Kings, Queens, and Jacks are worth 10 points.
-     25.       Aces are worth 1 or 11 points.
-     26.       Cards 2 through 10 are worth their face value.
-     27.       (H)it to take another card.
-     28.       (S)tand to stop taking cards.
-     29.       On your first play, you can (D)ouble down to increase your bet
-     30.       but must hit exactly one more time before standing.
-     31.       In case of a tie, the bet is returned to the player.
-     32.       The dealer stops hitting at 16.''')
+     
+          Rules:
+           Try to get as close to 21 without going over.
+           Kings, Queens, and Jacks are worth 10 points.
+           Aces are worth 1 or 11 points.
+           Cards 2 through 10 are worth their face value.
+           (H)it to take another card.
+           (S)tand to stop taking cards.
+           On your first play, you can (D)ouble down to increase your bet
+           but must hit exactly one more time before standing.
+           In case of a tie, the bet is returned to the player.
+           The dealer stops hitting at 16.''')
 
         while True:  # Main game loop.
             # Check if the player has run out of money:
@@ -65,7 +66,7 @@ class Game():
                     print('Bet increased to {}.'.format(bet))
                     print('Bet:', bet)
 
-                if move in ('H', 'D'):
+                elif move in ('H', 'D'):
                     # Hit/doubling down takes another card.
                     newCard = deck.pop()
                     rank, suit = newCard
@@ -76,7 +77,7 @@ class Game():
                         # The player has busted:
                         continue
 
-                if move in ('S', 'D'):
+                elif move in ('S', 'D'):
                     # Stand/doubling down stops the player's turn.
                     break
 
@@ -114,7 +115,8 @@ class Game():
             input('Press Enter to continue...')
             print('\n\n')
 
-    def getBet(self, maxBet):
+    @staticmethod
+    def getBet(maxBet):
         """Ask the player how much they want to bet for this round."""
         while True:  # Keep asking until they enter a valid amount.
             print('How much do you bet? (1-{}, or QUIT)'.format(maxBet))
@@ -134,16 +136,13 @@ class Game():
         """Return a list of (rank, suit) tuples for all 52 cards."""
         deck = []
         for suit in (self.HEARTS, self.DIAMONDS, self.SPADES, self.CLUBS):
-            for rank in range(2, 11):
-                deck.append((str(rank), suit))  # Add the numbered cards.
-            for rank in ('J', 'Q', 'K', 'A'):
-                deck.append((rank, suit))  # Add the face and ace cards.
+            deck.extend((str(rank), suit) for rank in range(2, 11))
+            deck.extend((rank, suit) for rank in ('J', 'Q', 'K', 'A'))
         random.shuffle(deck)
         return deck
 
     def displayHands(self, playerHand, dealerHand, showDealerHand):
-        """Show the player's and dealer's cards. Hide the dealer's first
-    154.     card if showDealerHand is False."""
+        """Show the player's and dealer's cards. Hide the dealer's first card if showDealerHand is False."""
         print()
         if showDealerHand:
             print('DEALER:', self.getHandValue(dealerHand))
@@ -157,9 +156,10 @@ class Game():
         print('PLAYER:', self.getHandValue(playerHand))
         self.displayCards(playerHand)
 
-    def getHandValue(self, cards):
+    @staticmethod
+    def getHandValue(cards):
         """Returns the value of the cards. Face cards are worth 10, aces are
-    171.     worth 11 or 1 (this function picks the most suitable ace value)."""
+        worth 11 or 1 (this function picks the most suitable ace value)."""
         value = 0
         numberOfAces = 0
 
@@ -175,7 +175,7 @@ class Game():
 
         # Add the value for the aces:
         value += numberOfAces  # Add 1 per ace.
-        for i in range(numberOfAces):
+        for _ in range(numberOfAces):
             # If another 10 can be added with busting, do so:
             if value + 10 <= 21:
                 value += 10
@@ -186,7 +186,7 @@ class Game():
         """Display all the cards in the cards list."""
         rows = ['', '', '', '', '']  # The text to display on each row.
 
-        for i, card in enumerate(cards):
+        for card in cards:
             rows[0] += ' ___  '  # Print the top line of the card.
             if card == self.BACKSIDE:
                 # Print a card's back:
@@ -205,8 +205,7 @@ class Game():
             print(row)
 
     def getMove(self, playerHand):
-        """Asks the player for their move, and returns 'H' for hit, 'S' for
-    220.     stand, and 'D' for double down."""
+        """Asks the player for their move, and returns 'H' for hit, 'S' for stand, and 'D' for double down."""
         while True:  # Keep looping until the player enters a correct move.
             # Determine what moves the player can make:
             moves = ['(H)it', '(S)tand']
@@ -219,10 +218,8 @@ class Game():
             # Get the player's move:
             movePrompt = ', '.join(moves) + '> '
             move = input(movePrompt).upper()
-            if move in ('H', 'S'):
-                return move  # Player has entered a valid move.
-            if move == 'D' and '(D)ouble down' in moves:
+            if move in ('H', 'S') or move == 'D' and '(D)ouble down' in moves:
                 return move  # Player has entered a valid move.
 
 
-Game().main()
+Game(100).main()
